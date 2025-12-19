@@ -2,6 +2,10 @@
 
 TypeScript Express API backed by Prisma (PostgreSQL), with JWT auth and email notifications. Uses integer cents for accuracy.
 
+Base Url : https://splitwise-o2cz.onrender.com
+
+can test it using this hosted link
+
 ## Setup
 
 ```sh
