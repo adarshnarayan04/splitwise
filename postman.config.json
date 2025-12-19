@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "Splitwise Backend ",
+    "_postman_id": "8b1e6e9c-aaaa-4f7a-bbbb-2222ccccdddd",
+    "description": "Expense sharing API without idempotency headers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "groupId", "value": "" },
+    { "key": "payerId", "value": "" },
+    { "key": "userBobId", "value": "" },
+    { "key": "userCharlieId", "value": "" }
+  ],
+  "item": [
+    { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/health" } },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/signup",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"Password123!\",\n  \"name\": \"Alice\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) { pm.environment.set('token', json.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"Password123!\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Create Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Trip to NYC\",\n  \"currency\": \"USD\",\n  \"members\": [\n    { \"userId\": \"{{userBobId}}\", \"role\": \"member\" }\n  ]\n}" }
+          }
+        },
+        {
+          "name": "Add Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/members",
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userCharlieId}}\",\n  \"role\": \"member\"\n}" }
+          }
+        },
+        {
+          "name": "Create Expense (equal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Dinner\",\n  \"totalCents\": 12000,\n  \"splitType\": \"EQUAL\",\n  \"participants\": [\"{{payerId}}\", \"{{userBobId}}\", \"{{userCharlieId}}\"],\n  \"paidByUserId\": \"{{payerId}}\",\n  \"metadata\": { \"note\": \"Italian place\" }\n}" }
+          }
+        },
+        {
+          "name": "Create Expense (exact shares)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Groceries\",\n  \"totalCents\": 15000,\n  \"splitType\": \"EXACT\",\n  \"exactShares\": [\n    { \"userId\": \"{{payerId}}\", \"amountCents\": 5000 },\n    { \"userId\": \"{{userBobId}}\", \"amountCents\": 7000 },\n    { \"userId\": \"{{userCharlieId}}\", \"amountCents\": 3000 }\n  ],\n  \"paidByUserId\": \"{{payerId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Create Expense (percent + multipayer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/expenses",
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Hotel\",\n  \"totalCents\": 30000,\n  \"splitType\": \"PERCENT\",\n  \"percentages\": [\n    { \"userId\": \"{{payerId}}\", \"percent\": 40 },\n    { \"userId\": \"{{userBobId}}\", \"percent\": 35 },\n    { \"userId\": \"{{userCharlieId}}\", \"percent\": 25 }\n  ],\n  \"paidByShares\": [\n    { \"userId\": \"{{payerId}}\", \"amountCents\": 20000 },\n    { \"userId\": \"{{userBobId}}\", \"amountCents\": 10000 }\n  ]\n}" }
+          }
+        },
+        {
+          "name": "Create Settlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/groups/{{groupId}}/settlements",
+            "body": { "mode": "raw", "raw": "{\n  \"fromUserId\": \"{{userBobId}}\",\n  \"toUserId\": \"{{payerId}}\",\n  \"amountCents\": 5000,\n  \"note\": \"Repaying dinner\"\n}" }
+          }
+        },
+        {
+          "name": "Get Balances",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/groups/{{groupId}}/balances"
+          }
+        },
+        {
+          "name": "Get Ledger",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/groups/{{groupId}}/ledger"
+          }
+        },
+        {
+          "name": "Get Group",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/groups/{{groupId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
