@@ -2,7 +2,7 @@
   "info": {
     "name": "Splitwise Backend ",
     "_postman_id": "8b1e6e9c-aaaa-4f7a-bbbb-2222ccccdddd",
-    "description": "Expense sharing API without idempotency headers",
+    "description": "Expense sharing API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
