@@ -3,7 +3,6 @@ import cors from "cors";
 import morgan from "morgan";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-import { dot } from "node:test/reporters";
 
 const app = express();
 
